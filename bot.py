@@ -14,87 +14,130 @@ load_dotenv()
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
-OPENSEA_API_KEY = os.getenv("OPENSEA_API_KEY")
 
 # Bot setup
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# OpenSea API endpoints
-OPENSEA_API_BASE = "https://api.opensea.io/api/v2"
+# Premint API endpoints
+PREMINT_API_BASE = "https://api.premint.xyz"
 
 # Global variables
 scheduler_thread = None
 
 
 def get_recent_mints():
-    """Fetch recent NFT mints from OpenSea"""
+    """Fetch today's active NFT mints from Premint"""
     try:
-        headers = {
-            "X-API-KEY": OPENSEA_API_KEY,
-            "Accept": "application/json"
-        }
+        from datetime import datetime, timedelta
         
-        # Get recent collections (newly created)
-        url = f"{OPENSEA_API_BASE}/collections"
+        # Get mints for today
+        url = f"{PREMINT_API_BASE}/collections/upcoming"
         params = {
-            "limit": 5,
-            "order_by": "created_date",
-            "order_direction": "desc"
+            "limit": 10,
+            "sort": "minting_soon",
+            "status": "minting_now"
         }
         
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=10)
         
         if response.status_code == 200:
             data = response.json()
-            return data.get("collections", [])
+            mints = data.get("data", [])
+            # Filter for today's mints
+            today = datetime.now().date()
+            today_mints = []
+            for mint in mints:
+                try:
+                    mint_date = mint.get("mint_date", "")
+                    if mint_date:
+                        mint_datetime = datetime.fromisoformat(mint_date.replace('Z', '+00:00')).date()
+                        if mint_datetime == today:
+                            today_mints.append(mint)
+                except:
+                    pass
+            return today_mints if today_mints else mints[:5]
         else:
-            print(f"Error fetching from OpenSea: {response.status_code}")
+            print(f"Error fetching from Premint: {response.status_code}")
             return []
     except Exception as e:
         print(f"Error fetching mints: {e}")
         return []
 
 
-def format_mint_embed(collection):
-    """Format collection data as Discord embed"""
+def format_mint_embed(mint):
+    """Format Premint mint data as Discord embed"""
     try:
+        name = mint.get("name", "Unknown Collection")
+        description = mint.get("description", "No description available")[:250]
+        
         embed = discord.Embed(
-            title=collection.get("name", "Unknown Collection"),
-            description=collection.get("description", "No description available")[:300],
-            color=discord.Color.blue(),
+            title=name,
+            description=description,
+            color=discord.Color.gold(),
             timestamp=datetime.now(pytz.UTC)
         )
         
-        # Add collection image
-        image_url = collection.get("image_url")
+        # Add mint image
+        image_url = mint.get("image_url") or mint.get("logo")
         if image_url:
             embed.set_thumbnail(url=image_url)
         
-        # Add relevant fields
+        # Mint price
+        price = mint.get("price", {})
+        if isinstance(price, dict):
+            price_str = price.get("value", "Check site")
+        else:
+            price_str = str(price) if price else "Check site"
+        
         embed.add_field(
-            name="Creator",
-            value=collection.get("creator", {}).get("user", {}).get("username", "Unknown"),
+            name="💰 Price",
+            value=price_str,
             inline=True
         )
         
-        contract_address = collection.get("contracts", [{}])[0].get("address", "N/A")
+        # Mint supply
+        supply = mint.get("supply", "N/A")
         embed.add_field(
-            name="Contract",
-            value=f"`{contract_address[:10]}...`",
+            name="📊 Supply",
+            value=str(supply),
             inline=True
         )
         
-        # Add OpenSea link
-        opensea_url = collection.get("opensea_url", "#")
+        # Mint time
+        mint_date = mint.get("mint_date", "TBA")
         embed.add_field(
-            name="View on OpenSea",
-            value=f"[Click here]({opensea_url})",
+            name="🕐 Mint Time",
+            value=mint_date[:16] if mint_date else "TBA",
+            inline=True
+        )
+        
+        # Creator/Project
+        creator = mint.get("creator_name") or mint.get("creator", "Unknown")
+        embed.add_field(
+            name="👤 Creator",
+            value=creator,
+            inline=True
+        )
+        
+        # Blockchain
+        blockchain = mint.get("blockchain", "Ethereum")
+        embed.add_field(
+            name="⛓️ Chain",
+            value=blockchain,
+            inline=True
+        )
+        
+        # Links
+        premint_url = mint.get("url") or f"https://www.premint.xyz/{mint.get('slug', '')}"
+        embed.add_field(
+            name="🔗 Links",
+            value=f"[Premint]({premint_url})",
             inline=False
         )
         
-        embed.set_footer(text="🌿 Daily Mint Bot")
+        embed.set_footer(text="🌿 Daily Mint Bot • Powered by Premint")
         
         return embed
     except Exception as e:
@@ -123,17 +166,18 @@ async def post_daily_mints():
             await channel.send(embed=embed)
             return
         
-        # Send embed for each mint
+        # Send header
         embed = discord.Embed(
-            title="🌿 Daily NFT Mints",
-            description=f"Today's hottest new collections ({len(mints)} found)",
+            title="🌿 Today's NFT Mints",
+            description=f"Hot collections minting now ({len(mints)} found)",
             color=discord.Color.gold(),
             timestamp=datetime.now(pytz.UTC)
         )
-        embed.set_footer(text="Powered by OpenSea API")
+        embed.set_footer(text="Data from Premint • Use !mint to refresh")
         
         await channel.send(embed=embed)
         
+        # Post top mints
         for mint in mints[:5]:  # Post top 5 mints
             mint_embed = format_mint_embed(mint)
             if mint_embed:
