@@ -107,6 +107,76 @@ def get_sample_data():
             "blockchain": "Ethereum",
             "url": "https://nftcalendar.io/event/green-lights26/",
             "verified": True
+        },
+        {
+            "name": "Medusa",
+            "description": "Medusa Claysona // No Legs",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/medusa26-nft/",
+            "verified": True
+        },
+        {
+            "name": "Masked Warriors - Laurence",
+            "description": "Warriors collection - Laurence edition",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/masked-laurence-nft/",
+            "verified": True
+        },
+        {
+            "name": "Inhale",
+            "description": "Part of EROSION, an experimental collection of abstract art",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/inhale-nft26/",
+            "verified": True
+        },
+        {
+            "name": "Touch",
+            "description": "Born from inner confidence and self-awareness",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/touch26-nft/",
+            "verified": True
+        },
+        {
+            "name": "Cosmic Guardian",
+            "description": "A legendary shield forged from pure cosmic crystal",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/cosmic-guardian26/",
+            "verified": True
+        },
+        {
+            "name": "Unseen",
+            "description": "Exploring the unseen: negative spaces and shadows",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/unseen-nft26/",
+            "verified": True
+        },
+        {
+            "name": "Paper Shelter",
+            "description": "Finding safety in the smallest, tightest space",
+            "price": "Check site",
+            "supply": "Limited",
+            "creator": "Verified",
+            "blockchain": "Ethereum",
+            "url": "https://nftcalendar.io/event/paper-shelter-nft/",
+            "verified": True
         }
     ]
 
