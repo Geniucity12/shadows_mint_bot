@@ -325,8 +325,9 @@ async def on_ready():
 
 
 @bot.command(name="mint")
+@commands.cooldown(1, 60, commands.BucketType.guild)
 async def manual_mint(ctx):
-    """Manually trigger daily mint posting"""
+    """Manually trigger daily mint posting (60 second cooldown per server)"""
     await ctx.send("🌿 Fetching today's NFT mints...")
     await post_daily_mints()
 
