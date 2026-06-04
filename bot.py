@@ -9,6 +9,7 @@ import schedule
 import threading
 import time
 from bs4 import BeautifulSoup
+import random
 
 # Load environment variables
 load_dotenv()
@@ -275,10 +276,13 @@ async def post_daily_mints():
             await channel.send(embed=embed)
             return
         
+        # Randomly select 5 mints to avoid duplicates
+        selected_mints = random.sample(mints, min(5, len(mints)))
+        
         # Send header
         embed = discord.Embed(
             title="🌿 Today's Top Mints",
-            description=f"Hottest NFT collections minting now ({len(mints)} found)",
+            description=f"Hottest NFT collections minting now ({len(selected_mints)} selected)",
             color=discord.Color.gold(),
             timestamp=datetime.now(pytz.UTC)
         )
@@ -286,14 +290,14 @@ async def post_daily_mints():
         
         await channel.send(embed=embed)
         
-        # Post top mints
-        for mint in mints[:5]:
+        # Post selected mints
+        for mint in selected_mints:
             mint_embed = format_mint_embed(mint)
             if mint_embed:
                 await channel.send(embed=mint_embed)
                 time.sleep(0.5)
         
-        print(f"Posted {len(mints)} mints to channel {CHANNEL_ID}")
+        print(f"Posted {len(selected_mints)} mints to channel {CHANNEL_ID}")
     except Exception as e:
         print(f"Error posting daily mints: {e}")
 
